@@ -127,12 +127,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="EstablishTCPConnection.c" />
     <ClCompile Include="SendDir.c" />
     <ClCompile Include="SendFile.c" />
     <ClCompile Include="Server.c" />
     <ClCompile Include="TCPBlockTransRecv.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="EstablishTCPConnection.h" />
     <ClInclude Include="SendDir.h" />
     <ClInclude Include="SendFile.h" />
     <ClInclude Include="TCPBlockTransRecv.h" />

@@ -15,6 +15,6 @@
 
 //Deklarasi fungsi-fungsi
 int sendFile(SOCKET socket, const char* filename, const char* savedfilename);
-int receiveFile(SOCKET socket, const char* filename, bool btimeout);
+int receiveFile(SOCKET socket, bool btimeout);
 
 #endif // SENDFILE_H

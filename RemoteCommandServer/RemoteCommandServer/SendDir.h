@@ -21,7 +21,7 @@
 #define FREE_AND_NULL(ptr) do { if ((ptr) != NULL) { free(ptr); (ptr) = NULL; } } while(0)
 
 //Deklarasi fungsi-fungsi
-void sendDir(SOCKET socket, const char* base_path, const char* curr_path);
-void receiveDir(SOCKET socket, bool btimeout);
+void sendDir(SOCKET socket1, SOCKET socket2, SOCKET socket3, const char* serverip, const char* port, const char* base_path, const char* curr_path);
+void receiveDir(SOCKET socket1, SOCKET socket2, SOCKET socket3, const char* serverip, const char* port, bool btimeout);
 
 #endif // SENDDIR_H

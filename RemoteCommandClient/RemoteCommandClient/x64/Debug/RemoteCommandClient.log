@@ -1,1 +1,11 @@
-﻿
+﻿  SendDir.c
+C:\Users\noname\Desktop\Simple-Remote-Command-Executor-main\RemoteCommandClient\RemoteCommandClient\SendDir.c(107,38): warning C4013: 'sendFile' undefined; assuming extern returning int
+C:\Users\noname\Desktop\Simple-Remote-Command-Executor-main\RemoteCommandClient\RemoteCommandClient\SendDir.c(155,37): warning C4013: 'receiveFile' undefined; assuming extern returning int
+  SendFile.c
+  TCPBlockTransRecv.c
+  client.c
+C:\Users\noname\Desktop\Simple-Remote-Command-Executor-main\RemoteCommandClient\RemoteCommandClient\client.c(109,10): warning C4101: 'command': unreferenced local variable
+C:\Users\noname\Desktop\Simple-Remote-Command-Executor-main\RemoteCommandClient\RemoteCommandClient\client.c(110,10): warning C4101: 'full_command': unreferenced local variable
+C:\Users\noname\Desktop\Simple-Remote-Command-Executor-main\RemoteCommandClient\RemoteCommandClient\client.c(111,10): warning C4101: 'cwd': unreferenced local variable
+  Generating Code...
+  RemoteCommandClient.vcxproj -> C:\Users\noname\Desktop\Simple-Remote-Command-Executor-main\RemoteCommandClient\x64\Debug\RemoteCommandClient.exe

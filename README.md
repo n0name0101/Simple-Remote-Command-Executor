@@ -49,6 +49,7 @@ Below are some example screenshots of the application in action.
 ### Download File
 ![Download File Screenshot](screenshots/download-file.png)
 ### Download Folder
+![Download Folder Screenshot](screenshots/download-folder.png)
 
 ---
 

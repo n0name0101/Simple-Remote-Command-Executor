@@ -1,4 +1,5 @@
 #include "SendDir.h"
+#include "EstablishTCPConnection.h"
 #include <shlwapi.h>
 
 #pragma comment(lib, "Shlwapi.lib") 
@@ -46,7 +47,7 @@ void get_error_message(char* err_buf, size_t buf_size) {
     strerror_s(err_buf, buf_size, errno);
 }
 
-void sendDirRecur(SOCKET socket, const char* base_path, const char* curr_path) {
+void sendDirRecur(SOCKET socket1, SOCKET socket2, SOCKET socket3, const char* serverip, const char* port, const char* base_path, const char* curr_path) {
     const char* relative;
     if (strcmp(base_path, curr_path) == 0)
         relative = ".";
@@ -92,47 +93,86 @@ void sendDirRecur(SOCKET socket, const char* base_path, const char* curr_path) {
         if (st.st_mode & _S_IFDIR) {
             printf("DIRECTORY : %s \n", full_path);
             char* sendBuffer = concat("MKDIR ", get_sub_path(full_path, PathFindFileNameA(base_path)));
-            if (sendBuffer != NULL && sendDataWithChecksum(socket, sendBuffer, strlen(sendBuffer) + 1) == 0) {
+            if (sendBuffer != NULL && sendDataWithChecksum(socket3, sendBuffer, strlen(sendBuffer) + 1) == 0) {
                 unsigned char* receivedData = NULL;
-                if (receiveDataWithChecksum(socket, &receivedData, TRUE) >= 0 && strcmp(receivedData, "MKDIR OK") == 0)
-                    sendDirRecur(socket, base_path, full_path);
+                if (receiveDataWithChecksum(socket3, &receivedData, TRUE) >= 0 && strcmp(receivedData, "MKDIR OK") == 0)
+                    sendDirRecur(socket1, socket2, socket3, serverip, port, base_path, full_path);
                 if (receivedData) free(receivedData); receivedData = NULL;
             }
             if (sendBuffer) free(sendBuffer); sendBuffer = NULL;
         }
         else if (st.st_mode & _S_IFREG) {
-            //printf("FILE : %s\n", full_path);
+            printf("FILE : %s\n", full_path);
+            if (sendDataWithChecksum(socket3, "FILE", 5) == 0) {
+                int sendFileResult = sendFile(socket3, full_path, get_sub_path(full_path, PathFindFileNameA(base_path)));
+                if (sendFileResult == -2) {
+                    char message[265] = "Error: ";  // Inisialisasi dengan prefix "Error: "
+                    // Tambahkan pesan error ke buffer, dimulai setelah "Error: "
+                    strerror_s(message + strlen(message), sizeof(message) - strlen(message), errno);
+                    strcat_s(message, sizeof(message), "\n");
+                    sendDataWithChecksum(socket2, (unsigned char*)message, strlen(message) + 1);
+                }
+                else if (sendFileResult == -1)
+                    sendDataWithChecksum(socket2, "Download Failed ... \n", 23);
+                // Reset Socket3
+                CLOSE_SOCKET(socket3);
+                socket3 = establishTCPConnect(serverip, port, 2);
+            }
         }
     } while (_findnext(handle, &findData) == 0);
     _findclose(handle);
 }
 
-void sendDir(SOCKET socket, const char* base_path, const char* curr_path) {
+void sendDir(SOCKET socket1, SOCKET socket2, SOCKET socket3, const char* serverip, const char* port, const char* base_path, const char* curr_path) {
     char* sendBuffer = concat("MKDIR ", PathFindFileNameA(base_path));
-    if (sendBuffer != NULL && sendDataWithChecksum(socket, sendBuffer, strlen(sendBuffer) + 1) == 0) {
+    if (sendBuffer != NULL && sendDataWithChecksum(socket3, sendBuffer, strlen(sendBuffer) + 1) == 0) {
         unsigned char* receivedData = NULL;
-        if (receiveDataWithChecksum(socket, &receivedData, TRUE) >= 0 && strcmp(receivedData, "MKDIR OK") == 0)
-            sendDirRecur(socket, base_path, curr_path);
+        if (receiveDataWithChecksum(socket3, &receivedData, TRUE) >= 0 && strcmp(receivedData, "MKDIR OK") == 0)
+            sendDirRecur(socket1, socket2, socket3, serverip, port, base_path, curr_path);
         if (receivedData) free(receivedData); receivedData = NULL;
     }
-    sendDataWithChecksum(socket, "END 89324527", 13);
-    CLOSE_SOCKET(socket);
+    sendDataWithChecksum(socket3, "END 89324527", 13);
+    CLOSE_SOCKET(socket3);
     if (sendBuffer) free(sendBuffer); sendBuffer = NULL;
 }
 
-void receiveDir(SOCKET socket, bool btimeout) {
+void receiveDir(SOCKET socket1, SOCKET socket2, SOCKET socket3, const char* serverip, const char* port, bool btimeout) {
     unsigned char* receivedData = NULL;
-    while (receiveDataWithChecksum(socket, &receivedData, btimeout) >= 0) {
+    while (receiveDataWithChecksum(socket3, &receivedData, btimeout) >= 0) {
         if (strncmp(receivedData, "MKDIR ", 6) == 0) {
             printf("%s   ", receivedData);
             if (_mkdir(receivedData + 6) == 0 || errno == EEXIST) {
                 printf("Success\n");
-                sendDataWithChecksum(socket, "MKDIR OK", 9);
+                sendDataWithChecksum(socket3, "MKDIR OK", 9);
             }
             else {
                 printf("Failed\n");
-                sendDataWithChecksum(socket, "MKDIR NO", 9);
+                sendDataWithChecksum(socket3, "MKDIR NO", 9);
             }
+        }
+        else if (strcmp(receivedData, "FILE") == 0) {
+            char* recvBuffer = NULL;
+            int receiveFileResult = receiveFile(socket3, TRUE);
+            if (receiveFileResult == 0)
+                printf("Download Success\n");
+            else if (receiveFileResult == -2) {
+                char message[265] = "Error: ";  // Inisialisasi dengan prefix "Error: "
+                // Tambahkan pesan error ke buffer, dimulai setelah "Error: "
+                strerror_s(message + strlen(message), sizeof(message) - strlen(message), errno);
+                strcat_s(message, sizeof(message), "\n");
+                printf("%s", message);
+                receiveDataWithChecksum(socket2, &recvBuffer, TRUE);
+                printf("%s", recvBuffer);
+            }
+            else {
+                receiveDataWithChecksum(socket2, &recvBuffer, TRUE);
+                printf("%s", recvBuffer);
+            }
+            if (recvBuffer) free(recvBuffer); recvBuffer = NULL;
+
+            // Reset Socket3
+            CLOSE_SOCKET(socket3);
+            socket3 = establishTCPListening(port, 2);
         }
         else if (strcmp(receivedData, "END 89324527") == 0) {
             printf("Completed \n");
@@ -144,6 +184,6 @@ void receiveDir(SOCKET socket, bool btimeout) {
         FREE_AND_NULL(receivedData);
     }
     FREE_AND_NULL(receivedData);
-    CLOSE_SOCKET(socket);
+    CLOSE_SOCKET(socket3);
     return;
 }

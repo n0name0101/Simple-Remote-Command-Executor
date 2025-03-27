@@ -1,0 +1,11 @@
+﻿  SendDir.c
+  SendFile.c
+C:\Users\noname\Desktop\Simple-Remote-Command-Executor-main\RemoteCommandServer\RemoteCommandServer\SendDir.c(107,38): warning C4013: 'sendFile' undefined; assuming extern returning int
+C:\Users\noname\Desktop\Simple-Remote-Command-Executor-main\RemoteCommandServer\RemoteCommandServer\SendDir.c(155,37): warning C4013: 'receiveFile' undefined; assuming extern returning int
+  Server.c
+  TCPBlockTransRecv.c
+  Generating code
+  Previous IPDB and IOBJ mismatch, fall back to full compilation.
+  All 15 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  Finished generating code
+  RemoteCommandServer.vcxproj -> C:\Users\noname\Desktop\Simple-Remote-Command-Executor-main\RemoteCommandServer\x64\Release\RemoteCommandServer.exe

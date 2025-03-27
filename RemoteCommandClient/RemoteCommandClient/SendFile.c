@@ -55,11 +55,11 @@ void printDownloadProgress(double speedKBps, unsigned long long downloadedBytes,
 
     // Print percentage, speed, and downloaded sizes in cyan.
     SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
-    printf("%.2f%%, Speed: %.2f KB/s, Downloaded: %.2f MB of %.2f MB",
+    printf("%.2f%% [%.2f MB/%.2f MB], Speed: %.2f KB/s",
         progress * 100,
-        speedKBps,
         downloadedBytes / 1048576.0,
-        totalBytes / 1048576.0);
+        totalBytes / 1048576.0,
+        speedKBps);
     // Reset to original color.
     SetConsoleTextAttribute(hConsole, csbi.wAttributes);
 
@@ -137,9 +137,10 @@ int sendFile(SOCKET socket, const char* filename, const char* savedfilename) {
     return 0;
 }
 
-int receiveFile(SOCKET socket, const char* filename, bool btimeout) {
+int receiveFile(SOCKET socket, bool btimeout) {
     // Receive Saved File name
     unsigned char* receivedData = NULL;
+    char savefilename[128] = "";
     if (receiveDataWithChecksum(socket, &receivedData, btimeout) < 0) {
         printf("Gagal menerima data file.\n");
         if (receivedData) free(receivedData); receivedData = NULL;
@@ -147,7 +148,9 @@ int receiveFile(SOCKET socket, const char* filename, bool btimeout) {
         return -1;
     }
 
-    FILE* fp = fopen(receivedData, "wb");
+    memcpy(savefilename, receivedData, strlen(receivedData) >= sizeof(savefilename) ? sizeof(savefilename) : strlen(receivedData) + 1);
+    savefilename[sizeof(savefilename) - 1] = 0;
+    FILE* fp = fopen(savefilename, "wb");
     if (!fp) {
         printf("Gagal membuka file untuk ditulis: %s\n", receivedData);
         if (receivedData) free(receivedData); receivedData = NULL;
@@ -169,7 +172,7 @@ int receiveFile(SOCKET socket, const char* filename, bool btimeout) {
     int intervalBytes = 0;
     double speedKBps = 0.0;
     ULONGLONG printStart = GetTickCount64(); // Waktu awal dalam milidetik
-    printf("File Path : %s , FileSize : %lld bytes\n", receivedData, filesize);
+    printf("\x1b[1;32mFile Path \t: %s \nSave to \t: %s \nFileSize \t: %lld bytes\x1b[0m\n", receivedData, savefilename, filesize);
     if (receivedData) free(receivedData); receivedData = NULL;
 
     while (1) {
@@ -180,7 +183,7 @@ int receiveFile(SOCKET socket, const char* filename, bool btimeout) {
             printf("Gagal menerima data file.\n");
             if (receivedData) free(receivedData); receivedData = NULL;
             fclose(fp);
-            remove(filename);
+            remove(savefilename);
             CLOSE_SOCKET(socket);
             return -1;
         }
@@ -200,7 +203,7 @@ int receiveFile(SOCKET socket, const char* filename, bool btimeout) {
             printf("Gagal menulis data ke file.\n");
             if (receivedData) free(receivedData); receivedData = NULL;
             fclose(fp);
-            remove(filename);
+            remove(savefilename);
             CLOSE_SOCKET(socket);
             return -2;
         }

@@ -27,6 +27,9 @@
     <ClCompile Include="TCPBlockTransRecv.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="EstablishTCPConnection.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SendDir.h">
@@ -36,6 +39,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TCPBlockTransRecv.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EstablishTCPConnection.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
