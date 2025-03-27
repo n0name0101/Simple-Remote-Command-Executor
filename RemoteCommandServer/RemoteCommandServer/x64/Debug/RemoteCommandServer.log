@@ -1,0 +1,6 @@
+﻿  SendDir.c
+  SendFile.c
+  Server.c
+  TCPBlockTransRecv.c
+  Generating Code...
+  RemoteCommandServer.vcxproj -> D:\Simple Remote Command Executor\RemoteCommandServer\x64\Debug\RemoteCommandServer.exe
